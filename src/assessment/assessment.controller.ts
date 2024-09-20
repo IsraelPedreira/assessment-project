@@ -23,4 +23,11 @@ export class AssessmentController {
     submitAssessment(@Body() body: SubmitAssessmentDTO, @Request() req: any) {
         return this.assessmentService.submitAssessment(body, req.user.sub);
     }
+
+    @UseGuards(AuthGuard, RolesGuard)
+    @Roles(Role.Teacher, Role.Admin)
+    @Get()
+    getAssessments(@Request() req: any) {
+        return this.assessmentService.getAssessments(req.user.sub);
+    }
 }

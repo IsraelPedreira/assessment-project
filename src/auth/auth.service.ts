@@ -20,7 +20,7 @@ export class AuthService {
             throw new HttpException('User not found', HttpStatus.NOT_FOUND);
         }
 
-        const isPasswordValid = await bcrypt.compare(loginDto.password, user.pasword);
+        const isPasswordValid = await bcrypt.compare(loginDto.password, user.password);
 
         if(!isPasswordValid){
             throw new HttpException('Invalid credentials', HttpStatus.UNAUTHORIZED);

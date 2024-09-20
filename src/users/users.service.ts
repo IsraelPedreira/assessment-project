@@ -31,7 +31,7 @@ export class UsersService {
             id: user.id,
             username: user.username,
             email: user.email,
-            pasword: user.password,
+            password: user.password,
             role: user.role
         };
     }

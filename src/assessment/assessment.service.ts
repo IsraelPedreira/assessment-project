@@ -85,6 +85,15 @@ export class AssessmentService {
             status: attempt.status,
             id: attempt.id
         }
+    }
 
+    async getAssessments(userId: string) {
+        const user = await this.usersService.findById(userId);
+
+        return await this.assessmentRepository.find({
+            where: {
+                user,
+            },
+        })
     }
 }
