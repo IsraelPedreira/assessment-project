@@ -5,6 +5,8 @@ import { AssessmentEntity } from 'src/db/entities/Assessment.entity';
 import { Repository } from 'typeorm';
 import { QuestionEntity } from 'src/db/entities/Questions.entity';
 import { UsersService } from 'src/users/users.service';
+import { SubmitAssessmentDTO } from './dto/SubmitAssessment.dto';
+import { AttemptEntity } from 'src/db/entities/Attempt.entity';
 
 @Injectable()
 export class AssessmentService {
@@ -14,6 +16,9 @@ export class AssessmentService {
 
         @InjectRepository(QuestionEntity)
         private questionRepository: Repository<QuestionEntity>,
+
+        @InjectRepository(AttemptEntity)
+        private attemptRepository: Repository<AttemptEntity>,
 
         private readonly usersService: UsersService
     ) {}
@@ -26,7 +31,8 @@ export class AssessmentService {
             description: assessment.description,
             duration: assessment.duration,
             instructions: assessment.instructions,
-            user
+            user,
+            passingScore: assessment.passingScore
         });
 
         const questions = assessment.questions.map((question) => {
@@ -42,8 +48,43 @@ export class AssessmentService {
         return {
             ...assessmentEntity,
             questions
-        } ;
-
+        };
     }
 
+    async submitAssessment(submission: SubmitAssessmentDTO, userId: string) {
+        const user = await this.usersService.findById(userId);
+
+        const assessment = await this.assessmentRepository.findOne({
+            where: {
+                id: submission.assessmentId
+            }
+        });
+
+        if (!assessment) {
+            throw new Error("Assessment not found");
+        }
+
+        const score = assessment.questions.reduce((acc: number, question) => {
+            const findQuestion = submission.answers.find((element)=> element.questionId === question.id)
+            if(findQuestion.selectedOption === question.answer){
+                return acc + question.score
+            }
+            return acc
+        }, 0)
+
+        const attempt = await this.attemptRepository.save({
+            assessment,
+            user,
+            answers: submission.answers,
+            score,
+            status: score >= assessment.passingScore * assessment.questions.length ? 'PASSED' : 'FAILED'
+        });
+
+        return {
+            score,
+            status: attempt.status,
+            id: attempt.id
+        }
+
+    }
 }

@@ -12,6 +12,9 @@ export class QuestionEntity {
     @Column()
     answer: string;
 
+    @Column({default: 1})
+    score: number;
+
     @ManyToOne(() => AssessmentEntity, (assessment) => assessment.questions)
     assessment: AssessmentEntity;
 }
